@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Vocab Mountain</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Material+Symbols+Rounded" >
+<style>
+  :root{
+    --md-primary:#4F378B;
+    --md-primary-container:#EADDFF;
+    --md-on-primary:#ffffff;
+    --md-surface:#FFFBFE;
+    --md-surface-variant:#E7E0EC;
+    --md-on-surface:#1C1B1F;
+    --md-on-surface-variant:#49454F;
+    --md-outline:#79747E;
+    --md-error:#B3261E;
+    --md-success:#2E7D32;
+    --elev1: 0 1px 2px rgba(0,0,0,.15), 0 1px 3px rgba(0,0,0,.1);
+    --elev2: 0 2px 6px rgba(0,0,0,.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:'Roboto',sans-serif;
+    background:var(--md-surface);
+    color:var(--md-on-surface);
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    overflow-x:hidden;
+  }
+  .material-symbols-rounded{
+    font-family:'Material Symbols Rounded';
+    font-weight:normal;
+    font-style:normal;
+    font-size:24px;
+    vertical-align:middle;
+    line-height:1;
+  }
+  /* Top App Bar */
+  .topbar{
+    display:flex;align-items:center;gap:8px;
+    padding:14px 16px calc(14px + env(safe-area-inset-top,0px)) 16px;
+    margin-top:calc(-1 * env(safe-area-inset-top,0px));
+    padding-top:calc(14px + env(safe-area-inset-top,0px));
+    background:var(--md-primary);color:var(--md-on-primary);
+    position:sticky;top:0;z-index:20;
+    box-shadow:var(--elev1);
+  }
+  .topbar .material-symbols-rounded{cursor:pointer;}
+  .topbar h1{font-size:20px;font-weight:500;margin:0;flex:1;}
+  .screen{display:none; padding:16px; padding-bottom:96px; max-width:640px; margin:0 auto;}
+  .screen.active{display:block;}
+  /* Group grid */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;}
+  .group-card{
+    background:var(--md-primary-container);
+    border-radius:20px;padding:16px;
+    box-shadow:var(--elev1);
+    cursor:pointer;transition:transform .1s;
+    position:relative;
+  }
+  .group-card:active{transform:scale(.97);}
+  .group-card .gnum{font-size:26px;font-weight:700;color:var(--md-primary);}
+  .group-card .glabel{font-size:13px;color:var(--md-on-surface-variant);margin-top:2px;}
+  .progress-bar{height:6px;border-radius:4px;background:rgba(0,0,0,.08);margin-top:10px;overflow:hidden;}
+  .progress-bar > div{height:100%;background:var(--md-primary);border-radius:4px;}
+  /* Word card */
+  .word-card{
+    background:#fff;border-radius:20px;box-shadow:var(--elev1);
+    margin-bottom:14px;overflow:hidden;
+  }
+  .word-img-wrap{width:100%;height:170px;background:var(--md-surface-variant);position:relative;overflow:hidden;}
+  .word-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+  .word-body{padding:14px 16px;}
+  .word-row{display:flex;align-items:center;justify-content:space-between;}
+  .word-title{font-size:20px;font-weight:700;text-transform:capitalize;}
+  .star-btn{cursor:pointer;color:var(--md-outline);}
+  .star-btn.on{color:#B8860B;}
+  .meaning{margin-top:8px;font-size:14px;color:var(--md-on-surface-variant);min-height:20px;}
+  .meaning .pos{font-style:italic;color:var(--md-primary);margin-right:6px;}
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    border:none;border-radius:20px;padding:9px 16px;
+    background:var(--md-primary);color:#fff;font-size:13px;font-weight:500;
+    cursor:pointer;
+  }
+  .btn.outline{background:transparent;color:var(--md-primary);border:1px solid var(--md-outline);}
+  .btn:disabled{opacity:.5;}
+  /* FAB */
+  .fab{
+    position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));
+    width:60px;height:60px;border-radius:20px;background:var(--md-primary);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--elev2);cursor:pointer;z-index:15;
+  }
+  /* Quiz */
+  .quiz-card{background:#fff;border-radius:20px;box-shadow:var(--elev1);padding:20px;text-align:center;}
+  .quiz-img{width:100%;height:200px;object-fit:cover;border-radius:16px;background:var(--md-surface-variant);margin-bottom:16px;}
+  .quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+  .opt-btn{
+    padding:14px 8px;border-radius:14px;border:1.5px solid var(--md-outline);
+    background:#fff;font-size:15px;text-transform:capitalize;cursor:pointer;
+  }
+  .opt-btn.correct{background:#C8E6C9;border-color:var(--md-success);}
+  .opt-btn.wrong{background:#F9CFCB;border-color:var(--md-error);}
+  .quiz-score{font-size:14px;color:var(--md-on-surface-variant);margin-bottom:4px;}
+  .quiz-progress{font-size:13px;color:var(--md-outline);margin-bottom:16px;}
+  .result-box{text-align:center;padding:40px 16px;}
+  .result-box .big{font-size:48px;font-weight:700;color:var(--md-primary);}
+  /* Bottom nav */
+  .bottomnav{
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    background:#fff;box-shadow:0 -1px 6px rgba(0,0,0,.12);
+    display:flex;padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .navitem{flex:1;text-align:center;padding:10px 0 8px;cursor:pointer;color:var(--md-outline);}
+  .navitem.active{color:var(--md-primary);}
+  .navitem div.label{font-size:11px;margin-top:2px;}
+  .empty-state{text-align:center;color:var(--md-outline);padding:60px 20px;}
+  select{
+    font-family:'Roboto',sans-serif;font-size:14px;padding:10px 14px;border-radius:14px;
+    border:1px solid var(--md-outline);background:#fff;width:100%;margin-top:10px;
+  }
+  .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span id="backBtn" class="material-symbols-rounded" style="display:none;" onclick="goHome()">arrow_back</span>
+  <h1 id="topTitle">Vocab Mountain</h1>
+  <span class="material-symbols-rounded" onclick="toggleStarredOnly()" id="filterIcon" title="Show starred only">star</span>
+</div>
+
+<!-- HOME: group list -->
+<div class="screen active" id="screen-home">
+  <div class="toolbar">
+    <span style="font-size:13px;color:var(--md-on-surface-variant);">960 words · 32 groups</span>
+  </div>
+  <div class="grid" id="groupGrid"></div>
+</div>
+
+<!-- WORDS: word list for a group -->
+<div class="screen" id="screen-words">
+  <div id="wordList"></div>
+</div>
+
+<!-- QUIZ setup -->
+<div class="screen" id="screen-quiz-setup">
+  <div class="quiz-card">
+    <div class="material-symbols-rounded" style="font-size:48px;color:var(--md-primary);">quiz</div>
+    <h2 style="margin:8px 0 4px;">Test yourself</h2>
+    <p style="color:var(--md-on-surface-variant);font-size:14px;">Pick a group, then match each picture to the right word.</p>
+    <select id="quizGroupSelect"></select>
+    <div style="margin-top:16px;">
+      <button class="btn" onclick="startQuiz()">Start quiz</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ play -->
+<div class="screen" id="screen-quiz-play">
+  <div class="quiz-score" id="quizScoreLine"></div>
+  <div class="quiz-progress" id="quizProgressLine"></div>
+  <div class="quiz-card">
+    <img class="quiz-img" id="quizImg" src="" alt="">
+    <div style="font-size:14px;color:var(--md-on-surface-variant);">Which word matches this picture?</div>
+    <div class="quiz-options" id="quizOptions"></div>
+  </div>
+</div>
+
+<!-- QUIZ result -->
+<div class="screen" id="screen-quiz-result">
+  <div class="result-box">
+    <div class="material-symbols-rounded" style="font-size:56px;color:#B8860B;">emoji_events</div>
+    <div class="big" id="resultScore">0/0</div>
+    <p id="resultMsg" style="color:var(--md-on-surface-variant);"></p>
+    <button class="btn" onclick="showScreen('quiz-setup')">Try another group</button>
+  </div>
+</div>
+
+<div class="bottomnav">
+  <div class="navitem active" id="nav-home" onclick="goHome()">
+    <span class="material-symbols-rounded">home</span>
+    <div class="label">Learn</div>
+  </div>
+  <div class="navitem" id="nav-quiz" onclick="openQuizSetup()">
+    <span class="material-symbols-rounded">quiz</span>
+    <div class="label">Quiz</div>
+  </div>
+</div>
+
+<script>
+let GROUPS = [];
+let currentGroup = null;
+let starredOnly = false;
+const STARS_KEY = 'vm_starred_v1';
+const PROGRESS_KEY = 'vm_progress_v1';
+
+function loadStars(){ try{ return JSON.parse(localStorage.getItem(STARS_KEY)||'{}'); }catch(e){ return {}; } }
+function saveStars(s){ try{ localStorage.setItem(STARS_KEY, JSON.stringify(s)); }catch(e){} }
+function loadProgress(){ try{ return JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}'); }catch(e){ return {}; } }
+function saveProgress(p){ try{ localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); }catch(e){} }
+
+let stars = loadStars();
+let progress = loadProgress();
+
+function imgUrlFor(word){
+  // Free, no-key photo lookup keyed by the word itself.
+  return 'https://loremflickr.com/400/300/' + encodeURIComponent(word) + '?lock=' + hashCode(word);
+}
+function hashCode(str){
+  let h = 0;
+  for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) | 0; }
+  return Math.abs(h) % 5000;
+}
+
+async function fetchMeaning(word){
+  try{
+    const res = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word));
+    if(!res.ok) throw new Error('no def');
+    const data = await res.json();
+    const meaning = data[0].meanings[0];
+    const pos = meaning.partOfSpeech;
+    const def = meaning.definitions[0].definition;
+    return {pos, def};
+  }catch(e){
+    return null;
+  }
+}
+
+async function init(){
+  const res = await fetch('vocab.json');
+  GROUPS = await res.json();
+  renderGroupGrid();
+  const sel = document.getElementById('quizGroupSelect');
+  sel.innerHTML = GROUPS.map(g => `<option value="${g.id}">Group ${g.id} (${g.words.length} words)</option>`).join('');
+}
+init();
+
+function renderGroupGrid(){
+  const grid = document.getElementById('groupGrid');
+  grid.innerHTML = GROUPS.map(g => {
+    const learned = g.words.filter(w => progress[w]).length;
+    const pct = Math.round(100 * learned / g.words.length);
+    return `<div class="group-card" onclick="openGroup(${g.id})">
+      <div class="gnum">${g.id}</div>
+      <div class="glabel">${g.words.length} words</div>
+      <div class="progress-bar"><div style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function goHome(){
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('topTitle').textContent = 'Vocab Mountain';
+  document.getElementById('filterIcon').style.display = 'inline-block';
+  setNav('home');
+  showScreen('home');
+  renderGroupGrid();
+}
+
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+function setNav(which){
+  document.getElementById('nav-home').classList.toggle('active', which === 'home');
+  document.getElementById('nav-quiz').classList.toggle('active', which === 'quiz');
+}
+
+function openGroup(id){
+  currentGroup = GROUPS.find(g => g.id === id);
+  document.getElementById('backBtn').style.display = 'inline-block';
+  document.getElementById('topTitle').textContent = 'Group ' + id;
+  document.getElementById('filterIcon').style.display = 'inline-block';
+  showScreen('words');
+  renderWordList();
+}
+
+function toggleStarredOnly(){
+  starredOnly = !starredOnly;
+  document.getElementById('filterIcon').style.color = starredOnly ? '#FFD54F' : '';
+  if(currentGroup) renderWordList(); else renderGroupGrid();
+}
+
+function renderWordList(){
+  const wrap = document.getElementById('wordList');
+  let words = currentGroup.words;
+  if(starredOnly) words = words.filter(w => stars[w]);
+  if(words.length === 0){
+    wrap.innerHTML = '<div class="empty-state"><span class="material-symbols-rounded" style="font-size:40px;">star_border</span><p>No starred words in this group yet.</p></div>';
+    return;
+  }
+  wrap.innerHTML = words.map(w => `
+    <div class="word-card" id="card-${cssId(w)}">
+      <div class="word-img-wrap"><img loading="lazy" src="${imgUrlFor(w)}" alt="${w}" onerror="this.style.display='none'"></div>
+      <div class="word-body">
+        <div class="word-row">
+          <div class="word-title">${w}</div>
+          <span class="material-symbols-rounded star-btn ${stars[w]?'on':''}" onclick="toggleStar('${w}')">${stars[w]?'star':'star_border'}</span>
+        </div>
+        <div class="meaning" id="meaning-${cssId(w)}"></div>
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button class="btn outline" onclick="revealMeaning('${w}')">Show meaning</button>
+          <button class="btn ${progress[w]?'':'outline'}" onclick="toggleLearned('${w}')">${progress[w] ? '✓ Learned' : 'Mark learned'}</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function cssId(w){ return w.replace(/[^a-z0-9]/gi,'_'); }
+
+async function revealMeaning(word){
+  const el = document.getElementById('meaning-' + cssId(word));
+  el.textContent = 'Looking up…';
+  const m = await fetchMeaning(word);
+  if(m){
+    el.innerHTML = `<span class="pos">${m.pos}</span>${m.def}`;
+  } else {
+    el.textContent = 'No definition found (check your connection).';
+  }
+}
+
+function toggleStar(word){
+  stars[word] = !stars[word];
+  saveStars(stars);
+  renderWordList();
+}
+function toggleLearned(word){
+  progress[word] = !progress[word];
+  saveProgress(progress);
+  renderWordList();
+}
+
+function openQuizSetup(){
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('topTitle').textContent = 'Quiz';
+  document.getElementById('filterIcon').style.display = 'none';
+  setNav('quiz');
+  showScreen('quiz-setup');
+}
+
+// ---- Quiz logic: match picture to word (multiple choice) ----
+let quizQueue = [], quizIndex = 0, quizScore = 0, quizPool = [];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(){
+  const gid = parseInt(document.getElementById('quizGroupSelect').value, 10);
+  const group = GROUPS.find(g => g.id === gid);
+  quizPool = group.words;
+  const count = Math.min(10, quizPool.length);
+  quizQueue = shuffle(quizPool).slice(0, count);
+  quizIndex = 0;
+  quizScore = 0;
+  showScreen('quiz-play');
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+  if(quizIndex >= quizQueue.length){
+    finishQuiz();
+    return;
+  }
+  const word = quizQueue[quizIndex];
+  document.getElementById('quizScoreLine').textContent = 'Score: ' + quizScore;
+  document.getElementById('quizProgressLine').textContent = 'Question ' + (quizIndex+1) + ' of ' + quizQueue.length;
+  document.getElementById('quizImg').src = imgUrlFor(word);
+
+  const distractors = shuffle(quizPool.filter(w => w !== word)).slice(0, 3);
+  const options = shuffle([word, ...distractors]);
+  const optWrap = document.getElementById('quizOptions');
+  optWrap.innerHTML = options.map(o => `<button class="opt-btn" onclick="answerQuiz(this,'${o}','${word}')">${o}</button>`).join('');
+}
+
+function answerQuiz(btn, chosen, correct){
+  const buttons = document.querySelectorAll('.opt-btn');
+  buttons.forEach(b => b.disabled = true);
+  if(chosen === correct){
+    btn.classList.add('correct');
+    quizScore++;
+  } else {
+    btn.classList.add('wrong');
+    buttons.forEach(b => { if(b.textContent === correct) b.classList.add('correct'); });
+  }
+  setTimeout(() => {
+    quizIndex++;
+    renderQuizQuestion();
+  }, 900);
+}
+
+function finishQuiz(){
+  showScreen('quiz-result');
+  document.getElementById('resultScore').textContent = quizScore + '/' + quizQueue.length;
+  const pct = Math.round(100*quizScore/quizQueue.length);
+  let msg = pct === 100 ? 'Perfect score!' : pct >= 70 ? 'Nicely done — keep going.' : 'Good try — review the group and quiz again.';
+  document.getElementById('resultMsg').textContent = msg;
+}
+</script>
+</body>
+</html>
