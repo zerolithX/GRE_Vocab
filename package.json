@@ -1,0 +1,17 @@
+{
+  "name": "vocab-mountain",
+  "version": "1.0.0",
+  "description": "Personal vocabulary learning app with photos and quizzes",
+  "private": true,
+  "scripts": {
+    "build-android": "npx cap add android || true && npx capacitor-assets generate --android && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^6.1.2"
+  }
+}
